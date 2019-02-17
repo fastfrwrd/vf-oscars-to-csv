@@ -8,8 +8,10 @@ Because I'm tired of hand-copying all these Oscar choices into spreadsheet!!! Sh
 
 2. Install this CLI with `npm i -g vf-oscars-to-csv`
 
-3. Run this node script, feeding in your url and name of the person whose ballot this is. If you need to output to a custom file, you can use `--output`.
+3. Run this node script, feeding in your url and name of the person whose ballot this is. If you need to output to a custom file, you can use `--output`. By default, it outputs to ./sheet.csv
 
 ```bash
 vf-oscars-to-csv --url="http://vf.com/share/vg87xbtq3em1" --name="Paul Marbach"
 ```
+
+4. Take the finalized CSV and throw it in Google Sheets or something! Use formulas to help keep score on Oscars night.
