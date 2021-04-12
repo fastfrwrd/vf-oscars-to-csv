@@ -26,8 +26,7 @@ const CATEGORY_LIST = [
   'BEST PRODUCTION DESIGN',
   'BEST CINEMATOGRAPHY',
   'BEST COSTUME DESIGN',
-  'BEST SOUND EDITING',
-  'BEST SOUND MIXING',
+  'BEST SOUND',
 ];
 
 async function run() {
@@ -36,7 +35,10 @@ async function run() {
   if (!name) throw new Error('provide a --name');
 
   console.log('connecting...');
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--disable-gpu', '--no-sandbox'],
+  });
   const page = await browser.newPage();
   await page.goto(url);
 
