@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import puppeteer from 'puppeteer';
 
-const CATEGORY_LIST = [
+export const CATEGORY_LIST = [
   'BEST PICTURE',
   'BEST DIRECTOR',
   'BEST ACTRESS',
@@ -27,6 +27,16 @@ const CATEGORY_LIST = [
   'BEST SOUND',
 ] as const;
 
+export type Category = typeof CATEGORY_LIST[number];
+export type Ballot = Record<Category, string | void>;
+
+export function ballotToCsvRow(ballot: Ballot, name: string): string {
+  return [
+    name,
+    ...CATEGORY_LIST.map(category => ballot[category]),
+  ].join(',') + '\n'
+}
+
 function verifyTitle(title: string): title is typeof CATEGORY_LIST[number] {
   if (!CATEGORY_LIST.includes(title as any)) {
     throw new Error(`unexpected category: ${title}`);
@@ -34,7 +44,7 @@ function verifyTitle(title: string): title is typeof CATEGORY_LIST[number] {
   return true;
 }
 
-export default async function vfToCsv(url: string, name: string): Promise<string> {
+export default async function vfToCsv(url: string): Promise<Ballot> {
   console.log('connecting...');
   const browser = await puppeteer.launch({
     headless: true,
@@ -51,7 +61,10 @@ export default async function vfToCsv(url: string, name: string): Promise<string
     const selections = await page.$$('.component-ballot-choices__entry');
 
     console.log('parsing ballot...');
-    const choiceByCategory: Partial<Record<typeof CATEGORY_LIST[number], string>> = {};
+    const ballot = CATEGORY_LIST.reduce((accum: Partial<Ballot>, key: Category): Partial<Ballot> => {
+      accum[key] = undefined;
+      return accum;
+    }, {}) as Ballot;
     for (const selection of selections) {
       const titleEl = await selection.$('.component-ballot-choices__title');
       const title = await page.evaluate(el => el.innerText, titleEl);
@@ -63,18 +76,12 @@ export default async function vfToCsv(url: string, name: string): Promise<string
       const choiceEl = await selection.$('.component-ballot-choices__choice');
       const choice = await page.evaluate(el => el.innerText, choiceEl);
 
-      choiceByCategory[title] = choice;
+      ballot[title] = choice;
     }
 
-    console.log("constructing output...")
-    const output = [
-      name,
-      ...CATEGORY_LIST.map(category => choiceByCategory[category]),
-    ].join(',') + '\n'
+    console.log('ballot built!');
 
-    console.log('done!');
-
-    return output;
+    return ballot;
   } finally {
     await browser.close();
   }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import yargs from 'yargs/yargs';
 import fs from 'fs';
-import vfToCsv  from '.';
+import vfToCsv, { ballotToCsvRow }  from '.';
 
 async function run() {
   try {
@@ -11,9 +11,11 @@ async function run() {
       output: { type: 'string', default: './sheet.csv' },
     }).argv;
 
-    const outputStr = await vfToCsv(url, name)
+    const ballot = await vfToCsv(url);
 
-    console.log('writing...');
+    console.log("writing ballot to CSV...")
+    const outputStr = ballotToCsvRow(ballot, name);
+
     if (!fs.existsSync(output)) {
       fs.closeSync(fs.openSync(output, 'w'));
     }
