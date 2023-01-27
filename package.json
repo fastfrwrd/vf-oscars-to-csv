@@ -1,6 +1,6 @@
 {
   "name": "vf-oscars-to-csv",
-  "version": "2023.1.1",
+  "version": "2023.1.2",
   "description": "utility to extract Oscar ballots from Vanity Fair's Interactive Ballot",
   "bin": {
     "vf-oscars-to-csv": "dist/bin.js"
