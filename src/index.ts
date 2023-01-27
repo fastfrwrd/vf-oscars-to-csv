@@ -28,7 +28,7 @@ export const CATEGORY_LIST = [
 ] as const;
 
 export type Category = typeof CATEGORY_LIST[number];
-export type Ballot = Record<Category, string | void>;
+export type Ballot = Record<Category, string | null>;
 
 export function ballotToCsvRow(ballot: Ballot, name: string): string {
   return [
@@ -79,7 +79,7 @@ export default async function vfToCsv(url: string): Promise<Ballot> {
 
     console.log('parsing ballot...');
     const ballot = CATEGORY_LIST.reduce((accum: Partial<Ballot>, key: Category): Partial<Ballot> => {
-      accum[key] = undefined;
+      accum[key] = null;
       return accum;
     }, {}) as Ballot;
     for (const selection of selections) {
@@ -94,7 +94,7 @@ export default async function vfToCsv(url: string): Promise<Ballot> {
       const choiceEl = await selection.$('.component-ballot-choices__choice');
       const choice = await page.evaluate(el => el?.innerHTML, choiceEl);
 
-      ballot[normalizedTitle] = choice;
+      ballot[normalizedTitle] = choice || null;
     }
 
     console.log('ballot built!');
