@@ -1,5 +1,4 @@
-#!/usr/bin/env node
-import puppeteer from 'puppeteer';
+import chromium from 'chrome-aws-lambda';
 
 export const CATEGORY_LIST = [
   'BEST PICTURE',
@@ -38,7 +37,7 @@ export function ballotToCsvRow(ballot: Ballot, name: string): string {
 }
 
 function verifyTitle(title: string): title is typeof CATEGORY_LIST[number] {
-  if (!CATEGORY_LIST.includes(title as any)) {
+  if (!CATEGORY_LIST.includes(title as typeof CATEGORY_LIST[number])) {
     throw new Error(`unexpected category: ${title}`);
   }
   return true;
@@ -46,9 +45,12 @@ function verifyTitle(title: string): title is typeof CATEGORY_LIST[number] {
 
 export default async function vfToCsv(url: string): Promise<Ballot> {
   console.log('connecting...');
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ['--disable-gpu', '--no-sandbox'],
+  const browser = await chromium.puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath,
+    headless: chromium.headless,
+    ignoreHTTPSErrors: true,
   });
 
   try {
@@ -67,16 +69,17 @@ export default async function vfToCsv(url: string): Promise<Ballot> {
     }, {}) as Ballot;
     for (const selection of selections) {
       const titleEl = await selection.$('.component-ballot-choices__title');
-      const title = await page.evaluate(el => el.innerText, titleEl);
+      const rawTitle = await page.evaluate(el => el?.innerHTML, titleEl);
+      const normalizedTitle = rawTitle ? rawTitle.toUpperCase().trim() : undefined
 
-      if (!verifyTitle(title)) {
-        throw new Error(`Title ${title} was not found as a valid category`);
+      if (!normalizedTitle || !verifyTitle(normalizedTitle)) {
+        throw new Error(`Title ${normalizedTitle} was not found as a valid category`);
       }
 
       const choiceEl = await selection.$('.component-ballot-choices__choice');
-      const choice = await page.evaluate(el => el.innerText, choiceEl);
+      const choice = await page.evaluate(el => el?.innerHTML, choiceEl);
 
-      ballot[title] = choice;
+      ballot[normalizedTitle] = choice;
     }
 
     console.log('ballot built!');

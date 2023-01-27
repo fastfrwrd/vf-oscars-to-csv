@@ -1,6 +1,6 @@
 {
   "name": "vf-oscars-to-csv",
-  "version": "2023.0.0",
+  "version": "2023.1.0",
   "description": "utility to extract Oscar ballots from Vanity Fair's Interactive Ballot",
   "bin": {
     "vf-oscars-to-csv": "dist/bin.js"
@@ -15,7 +15,9 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "puppeteer": "^8.0.0",
+    "chrome-aws-lambda": "^10.1.0",
+    "puppeteer": "^10.4.0",
+    "puppeteer-core": "^19.6.1",
     "yargs": "^17.6.2"
   },
   "devDependencies": {
