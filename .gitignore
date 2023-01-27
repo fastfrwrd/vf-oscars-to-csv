@@ -81,3 +81,4 @@ typings/
 
 dist/
 sheet.csv
+yarn.lock
