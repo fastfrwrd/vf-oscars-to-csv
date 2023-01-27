@@ -1,4 +1,5 @@
-import chromium from 'chrome-aws-lambda';
+import chrome from 'chrome-aws-lambda';
+import puppeteer, { Browser } from 'puppeteer-core';  
 
 export const CATEGORY_LIST = [
   'BEST PICTURE',
@@ -36,6 +37,26 @@ export function ballotToCsvRow(ballot: Ballot, name: string): string {
   ].join(',') + '\n'
 }
 
+async function getBrowser(): Promise<Browser> {
+  // https://github.com/orgs/vercel/discussions/124#discussioncomment-569978
+  const options = process.env.AWS_REGION
+    ? {
+        args: chrome.args,
+        executablePath: await chrome.executablePath,
+        headless: chrome.headless
+      }
+    : {
+        args: [],
+        executablePath:
+          process.platform === 'win32'
+            ? 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+            : process.platform === 'linux'
+            ? '/usr/bin/google-chrome'
+            : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+      };
+  return await puppeteer.launch(options);
+}
+
 function verifyTitle(title: string): title is typeof CATEGORY_LIST[number] {
   if (!CATEGORY_LIST.includes(title as typeof CATEGORY_LIST[number])) {
     throw new Error(`unexpected category: ${title}`);
@@ -45,13 +66,7 @@ function verifyTitle(title: string): title is typeof CATEGORY_LIST[number] {
 
 export default async function vfToCsv(url: string): Promise<Ballot> {
   console.log('connecting...');
-  const browser = await chromium.puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless,
-    ignoreHTTPSErrors: true,
-  });
+  const browser = await getBrowser();
 
   try {
     const page = await browser.newPage();
