@@ -1,31 +1,6 @@
 import chrome from 'chrome-aws-lambda';
 import puppeteer, { Browser } from 'puppeteer-core';  
-
-export const CATEGORY_LIST = [
-  'BEST PICTURE',
-  'BEST DIRECTOR',
-  'BEST ACTRESS',
-  'BEST ACTOR',
-  'BEST SUPPORTING ACTRESS',
-  'BEST SUPPORTING ACTOR',
-  'BEST ORIGINAL SCREENPLAY',
-  'BEST ADAPTED SCREENPLAY',
-  'BEST ANIMATED FEATURE',
-  'BEST ORIGINAL SONG',
-  'BEST ORIGINAL SCORE',
-  'BEST DOCUMENTARY, FEATURE',
-  'BEST DOCUMENTARY, SHORT',
-  'BEST SHORT FILM, LIVE ACTION',
-  'BEST INTERNATIONAL FEATURE FILM',
-  'BEST MAKEUP AND HAIRSTYLING',
-  'BEST FILM EDITING',
-  'BEST VISUAL EFFECTS',
-  'BEST SHORT FILM, ANIMATED',
-  'BEST PRODUCTION DESIGN',
-  'BEST CINEMATOGRAPHY',
-  'BEST COSTUME DESIGN',
-  'BEST SOUND',
-] as const;
+export { CATEGORY_LIST } from './consts';
 
 export type Category = typeof CATEGORY_LIST[number];
 export type Ballot = Record<Category, string | null>;
