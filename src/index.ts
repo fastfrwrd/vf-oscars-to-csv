@@ -1,6 +1,6 @@
 import chrome from 'chrome-aws-lambda';
 import puppeteer, { Browser } from 'puppeteer-core';  
-export { CATEGORY_LIST } from './consts';
+import { CATEGORY_LIST } from './consts';
 
 export type Category = typeof CATEGORY_LIST[number];
 export type Ballot = Record<Category, string | null>;
