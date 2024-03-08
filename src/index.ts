@@ -1,6 +1,5 @@
 import chrome from 'chrome-aws-lambda';
 import puppeteer, { Browser } from 'puppeteer-core';  
-import fs from 'fs';
 import { CATEGORY_LIST } from './consts';
 
 export type Category = typeof CATEGORY_LIST[number];
