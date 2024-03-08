@@ -1,5 +1,6 @@
 import chrome from 'chrome-aws-lambda';
 import puppeteer, { Browser } from 'puppeteer-core';  
+import fs from 'fs';
 import { CATEGORY_LIST } from './consts';
 
 export type Category = typeof CATEGORY_LIST[number];
@@ -16,7 +17,7 @@ async function getBrowser(): Promise<Browser> {
   // https://github.com/orgs/vercel/discussions/124#discussioncomment-569978
   const options = process.env.AWS_REGION
     ? {
-        args: chrome.args,
+        args: [...chrome.args, '--enable-features=ExperimentalJavaScript'],
         executablePath: await chrome.executablePath,
         headless: chrome.headless
       }
@@ -39,18 +40,23 @@ function verifyTitle(title: string): title is typeof CATEGORY_LIST[number] {
   return true;
 }
 
+const classNameMatchSelector = (className: string, element: string = 'div'): string => (
+  `${element}[class*=" ${className}"],${element}[class^="${className}"]`
+)
+
 export default async function vfToCsv(url: string): Promise<Ballot> {
   console.log('connecting...');
   const browser = await getBrowser();
 
   try {
     const page = await browser.newPage();
+    await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.157 Safari/537.36");
     await page.goto(url);
 
-    await page.waitForSelector('.component-ballot-choices');
+    await page.waitForSelector(classNameMatchSelector('Component-pageContainer'), { timeout: 7500 });
     console.log('found ballot!');
 
-    const selections = await page.$$('.component-ballot-choices__entry');
+    const selections = await page.$$(classNameMatchSelector('Component-questionsWrapper'));
 
     console.log('parsing ballot...');
     const ballot = CATEGORY_LIST.reduce((accum: Partial<Ballot>, key: Category): Partial<Ballot> => {
@@ -58,7 +64,7 @@ export default async function vfToCsv(url: string): Promise<Ballot> {
       return accum;
     }, {}) as Ballot;
     for (const selection of selections) {
-      const titleEl = await selection.$('.component-ballot-choices__title');
+      const titleEl = await selection.$(classNameMatchSelector('Component-title', 'h2'));
       const rawTitle = await page.evaluate(el => el?.innerHTML, titleEl);
       const normalizedTitle = rawTitle ? rawTitle.toUpperCase().trim() : undefined
 
@@ -66,7 +72,10 @@ export default async function vfToCsv(url: string): Promise<Ballot> {
         throw new Error(`Title ${normalizedTitle} was not found as a valid category`);
       }
 
-      const choiceEl = await selection.$('.component-ballot-choices__choice');
+      const choiceCircleEl = await selection.$('circle[fill="red"]');
+      const choiceContainerEl = ((await choiceCircleEl?.$x('../..')) ?? [])[0];
+      const choiceEl = await choiceContainerEl?.$(classNameMatchSelector('Component-questionName'));
+
       const choice = await page.evaluate(el => el?.innerHTML, choiceEl);
 
       ballot[normalizedTitle] = choice || null;
