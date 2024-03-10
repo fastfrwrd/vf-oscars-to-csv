@@ -5,6 +5,9 @@
   "bin": {
     "vf-oscars-to-csv": "dist/bin.js"
   },
+  "engines": {
+    "node": ">= 18.0"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "Paul Marbach",
@@ -17,8 +20,8 @@
     "prepublish": "npm run prepare"
   },
   "dependencies": {
-    "chrome-aws-lambda": "^8.0.2",
-    "puppeteer-core": "^8.0.0",
+    "chrome-aws-lambda": "^10.1.0",
+    "puppeteer-core": "^10.4.0",
     "yargs": "17.6.2"
   },
   "devDependencies": {
