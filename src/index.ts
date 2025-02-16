@@ -1,5 +1,5 @@
-import chrome from 'chrome-aws-lambda';
-import puppeteer, { Browser } from 'puppeteer-core';  
+import chromium from "@sparticuz/chromium";
+import puppeteer, { Browser } from 'puppeteer-core';
 import { CATEGORY_LIST } from './consts';
 
 export type Category = typeof CATEGORY_LIST[number];
@@ -16,23 +16,25 @@ export function ballotToCsvRow(ballot: Ballot, name: string): string {
 }
 
 async function getBrowser(): Promise<Browser> {
-  // https://github.com/orgs/vercel/discussions/124#discussioncomment-569978
-  const options = process.env.AWS_REGION
-    ? {
-        args: [...chrome.args, '--enable-features=ExperimentalJavaScript'],
-        executablePath: await chrome.executablePath,
-        headless: chrome.headless
-      }
-    : {
-        args: [],
-        executablePath:
-          process.platform === 'win32'
-            ? 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
-            : process.platform === 'linux'
-            ? '/usr/bin/google-chrome'
-            : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-      };
-  return await puppeteer.launch(options);
+  if (process.env.NODE_ENV === "production") {
+    return await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      // @ts-ignore not sure what the mismatch is about.
+      headless: chromium.headless,
+    });
+  }
+
+  return await puppeteer.launch({
+    args: [],
+    executablePath:
+      process.platform === 'win32'
+        ? 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'
+        : process.platform === 'linux'
+        ? '/usr/bin/google-chrome'
+        : '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  });
 }
 
 function verifyTitle(title: string): title is typeof CATEGORY_LIST[number] {
@@ -77,7 +79,7 @@ export default async function vfToCsv(url: string): Promise<Ballot> {
       }
 
       const choiceCircleEl = await selection.$('circle[fill="red"]');
-      const choiceContainerEl = ((await choiceCircleEl?.$x('../..')) ?? [])[0];
+      const choiceContainerEl = await choiceCircleEl?.$('xpath=../..');
       const choiceEl = await choiceContainerEl?.$(classNameMatchSelector('Component-questionName'));
 
       const choice = await page.evaluate(el => el?.innerHTML, choiceEl);

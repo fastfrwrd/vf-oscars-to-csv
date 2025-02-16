@@ -20,8 +20,8 @@
     "prepublish": "npm run prepare"
   },
   "dependencies": {
-    "chrome-aws-lambda": "^10.1.0",
-    "puppeteer-core": "^10.4.0",
+    "@sparticuz/chromium": "^132.0.0",
+    "puppeteer-core": "^24.2.1",
     "yargs": "17.6.2"
   },
   "devDependencies": {
