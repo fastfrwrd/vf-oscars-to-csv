@@ -8,7 +8,10 @@ export type Ballot = Record<Category, string | null>;
 export function ballotToCsvRow(ballot: Ballot, name: string): string {
   return [
     name,
-    ...CATEGORY_LIST.map(category => ballot[category]),
+    ...CATEGORY_LIST.map(category => ballot[category]).map(val => {
+      if (val?.includes(",")) return `"${val.replace(/"/g, "'")}"`;
+      return val;
+    }),
   ].join(',') + '\n'
 }
 
